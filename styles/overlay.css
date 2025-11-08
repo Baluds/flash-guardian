@@ -147,12 +147,12 @@
 }
 
 .fg-btn-primary {
-  background: #faee21;
+  background: #ffc107;
   color: #000000;
 }
 
 .fg-btn-primary:hover {
-  background: #f0d600;
+  background: #e6ab00;
 }
 
 .fg-btn-danger {

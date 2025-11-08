@@ -5,7 +5,8 @@
   "description": "Protects photosensitive users by detecting and warning about flashing content in videos",
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "tabs"
   ],
   "background": {
     "service_worker": "scripts/background.js"

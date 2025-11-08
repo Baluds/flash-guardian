@@ -6,6 +6,54 @@
 // Queue to serialize stat updates and prevent race conditions
 let updateQueue = Promise.resolve();
 
+// Track active tabs for each platform
+let platformTabs = {
+  youtube: new Set(),
+  tiktok: new Set(),
+  twitter: new Set(),
+  instagram: new Set(),
+  twitch: new Set()
+};
+
+// Platform URL matchers
+const platformMatchers = {
+  youtube: /youtube\.com/,
+  tiktok: /tiktok\.com/,
+  twitter: /(twitter\.com|x\.com)/,
+  instagram: /instagram\.com/,
+  twitch: /twitch\.tv/
+};
+
+/**
+ * Determine which platform a URL belongs to
+ */
+function getPlatformFromUrl(url) {
+  if (!url) return null;
+  for (const [platform, regex] of Object.entries(platformMatchers)) {
+    if (regex.test(url)) return platform;
+  }
+  return null;
+}
+
+/**
+ * Reset stats to zero
+ */
+function resetStats() {
+  const resetStatsObj = {
+    videosMonitored: 0,
+    warningsIssued: 0,
+    flashesDetected: 0
+  };
+
+  chrome.storage.local.set({ stats: resetStatsObj }, () => {
+    console.log('[Flash Guardian Background] Stats reset to zero in local storage');
+  });
+
+  chrome.storage.sync.set({ stats: resetStatsObj }, () => {
+    console.log('[Flash Guardian Background] Stats reset to zero in sync storage');
+  });
+}
+
 // Listen for messages from content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log('[Flash Guardian Background] Received message:', request);
@@ -117,5 +165,74 @@ chrome.runtime.onInstalled.addListener((details) => {
         console.log('[Flash Guardian] Extension updated, settings preserved');
       });
     });
+  }
+});
+
+// Track when tabs are created or updated
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  // Handle page load completion
+  if (changeInfo.status === 'complete' && tab.url) {
+    const platform = getPlatformFromUrl(tab.url);
+    if (platform) {
+      platformTabs[platform].add(tabId);
+      console.log(`[Flash Guardian Background] Tab ${tabId} added to ${platform}. Active tabs:`, platformTabs[platform].size);
+    }
+  }
+
+  // Handle URL changes (navigation within a tab)
+  if (changeInfo.url) {
+    const newPlatform = getPlatformFromUrl(changeInfo.url);
+
+    // Remove tab from all platforms first
+    for (const [platform, tabSet] of Object.entries(platformTabs)) {
+      if (tabSet.has(tabId) && platform !== newPlatform) {
+        tabSet.delete(tabId);
+        console.log(`[Flash Guardian Background] Tab ${tabId} navigated away from ${platform}. Remaining tabs:`, tabSet.size);
+
+        // If no more tabs for this platform, reset stats
+        if (tabSet.size === 0) {
+          console.log(`[Flash Guardian Background] No more ${platform} tabs open. Resetting stats.`);
+          resetStats();
+        }
+      }
+    }
+
+    // Add to new platform if applicable
+    if (newPlatform) {
+      platformTabs[newPlatform].add(tabId);
+      console.log(`[Flash Guardian Background] Tab ${tabId} navigated to ${newPlatform}`);
+    }
+  }
+});
+
+// Track when tabs are activated (switched to)
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  chrome.tabs.get(activeInfo.tabId, (tab) => {
+    if (tab && tab.url) {
+      const platform = getPlatformFromUrl(tab.url);
+      if (platform) {
+        platformTabs[platform].add(activeInfo.tabId);
+        console.log(`[Flash Guardian Background] Tab ${activeInfo.tabId} activated for ${platform}`);
+      }
+    }
+  });
+});
+
+// Track when tabs are removed
+chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
+  console.log(`[Flash Guardian Background] Tab ${tabId} removed`);
+
+  // Remove the tab from all platform sets
+  for (const [platform, tabSet] of Object.entries(platformTabs)) {
+    if (tabSet.has(tabId)) {
+      tabSet.delete(tabId);
+      console.log(`[Flash Guardian Background] Tab ${tabId} removed from ${platform}. Remaining tabs:`, tabSet.size);
+
+      // If no more tabs for this platform, reset stats
+      if (tabSet.size === 0) {
+        console.log(`[Flash Guardian Background] No more ${platform} tabs open. Resetting stats.`);
+        resetStats();
+      }
+    }
   }
 });

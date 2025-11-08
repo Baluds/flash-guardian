@@ -5,7 +5,9 @@
   "description": "Protects photosensitive users by detecting and warning about flashing content in videos",
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "tabs",
+    "scripting"
   ],
   "background": {
     "service_worker": "scripts/background.js"
@@ -23,7 +25,16 @@
       "js": ["scripts/detector.js"],
       "css": ["styles/overlay.css"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["scripts/summarizer.js"],
+      "run_at": "document_idle"
     }
+  ],
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.groq.com/*"
   ],
   "action": {
     "default_popup": "popup.html",

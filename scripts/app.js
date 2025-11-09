@@ -341,6 +341,11 @@ function showError(message) {
     document.getElementById('summaryError').style.display = 'block';
 }
 
+function showInfo(message) {
+    document.getElementById('summaryError').textContent = message;
+    document.getElementById('summaryError').style.display = 'block';
+}
+
 // ===================================
 // SETTINGS MODAL
 // ===================================
@@ -406,21 +411,26 @@ function handleSaveSettings() {
         elevenLabsApiKey: elevenLabsKey,
         voiceId: voiceId
     }, () => {
+        
+        const ttsBtn = document.getElementById('ttsBtn');
+        const originalText = ttsBtn.textContent;
+    
+        ttsBtn.textContent = '🔊 Listen';
+
         closeSettingsModal();
         // Show success message
-        if (currentView === 'summarizer') {
+        document.getElementById('audioPlayer').style.display = 'none';
         document.getElementById('summaryError').style.background = '#d4edda';
         document.getElementById('summaryError').style.borderColor = '#28a745';
         document.getElementById('summaryError').style.color = '#155724';
         errormsg = aiProvider === 'gemini' ? `✓ Gemini API key saved! You can now generate summaries.` : `✓ ElevenLabs API key saved! You can now use Text-to-Speech.`;
-        showError(errormsg);
+        showInfo(errormsg);
         setTimeout(() => {
             document.getElementById('summaryError').style.display = 'none';
             document.getElementById('summaryError').style.background = '#ffebee';
             document.getElementById('summaryError').style.borderColor = '#ef5350';
             document.getElementById('summaryError').style.color = '#c62828';
         }, 3000);
-        }
     });
     
 }

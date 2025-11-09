@@ -58,6 +58,12 @@ document.getElementById('whiteNoiseToggle').addEventListener('change', (e) => {
   chrome.storage.sync.set({ audioEnabled: audioActive });
 });
 
+// Text-to-speech toggle change handler
+document.getElementById('ttsToggle').addEventListener('change', (e) => {
+  const ttsEnabled = e.target.checked;
+  chrome.storage.sync.set({ ttsEnabled });
+});
+
 // Sound type selector change handler
 document.getElementById('soundType').addEventListener('change', (e) => {
   currentSoundType = e.target.value;
@@ -203,9 +209,11 @@ document.getElementById('rocketBtn').addEventListener('click', () => {
 });
 
 // Load settings from storage
-chrome.storage.sync.get(['enabled', 'autoPause'], (data) => {
+chrome.storage.sync.get(['enabled', 'autoPause', 'ttsEnabled'], (data) => {
   // Set toggle state for enable protection
   document.getElementById('enableToggle').checked = data.enabled !== false;
+
+  document.getElementById('ttsToggle').checked = data.ttsEnabled !== false;
 
   // Auto-pause is always enabled (no toggle in UI)
 
@@ -292,6 +300,10 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 
 // Reset statistics button
 document.getElementById('resetStats').addEventListener('click', () => {
+
+  chrome.storage.local.clear();
+  chrome.storage.sync.clear();
+  
   const resetStats = {
     videosMonitored: 0,
     warningsIssued: 0,
@@ -494,7 +506,7 @@ function openSettingsModal() {
       document.getElementById('elevenLabsApiKeyInput').value = data.elevenLabsApiKey;
     }
     if (data.voiceId) {
-      document.getElementById('voiceSelect').value = data.voiceId || 'JBFqnCBsd6RMkjVDRZzb';
+      document.getElementById('voiceSelect').value = data.voiceId || 'AeRdCCKzvd23BpJoofzx';
     }
   });
   document.getElementById('settingsModal').classList.add('active');
@@ -508,6 +520,7 @@ function closeSettingsModal() {
 // Save settings
 document.getElementById('saveSettings').addEventListener('click', () => {
   const provider = document.getElementById('aiProvider').value;
+  console.log('[Halo] Saving settings for provider:', provider);
   const geminiKey = document.getElementById('apiKeyInput').value.trim();
   const elevenLabsKey = document.getElementById('elevenLabsApiKeyInput').value.trim();
   const voiceId = document.getElementById('voiceSelect').value;
@@ -534,10 +547,11 @@ document.getElementById('saveSettings').addEventListener('click', () => {
     closeSettingsModal();
     // Show success message
     if (currentView === 'summarizer') {
+      console.log('[Halo] Settings saved successfully: ', aiProvider);
       document.getElementById('summaryError').style.background = '#d4edda';
       document.getElementById('summaryError').style.borderColor = '#28a745';
       document.getElementById('summaryError').style.color = '#155724';
-      errormsg = aiProvider === 'gemini' ? `✓ Gemini API key saved! You can now generate summaries.` : `✓ ElevenLabs API key saved! You can now use Text-to-Speech.`;
+      errormsg = provider === 'gemini' ? `✓ Gemini API key saved! You can now generate summaries.` : `✓ ElevenLabs API key saved! You can now use Text-to-Speech.`;
       showError(errormsg);
       setTimeout(() => {
         document.getElementById('summaryError').style.display = 'none';

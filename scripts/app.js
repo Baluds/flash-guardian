@@ -92,10 +92,6 @@ function handleClear() {
     document.getElementById('summaryError').style.display = 'none';
     document.getElementById('summaryLoading').style.display = 'none';
     document.getElementById('audioPlayer').style.display = 'none';
-    if (currentAudioUrl) {
-        URL.revokeObjectURL(currentAudioUrl);
-        currentAudioUrl = null;
-    }
     updateCharCount();
 }
 
@@ -124,11 +120,10 @@ function updateCharCount() {
 // ===================================
 
 async function handleTextToSpeech() {
-    // const settings = getSettings();
 
     chrome.storage.sync.get(['elevenLabsApiKey', 'voiceId'], async (data) => {
         const elevenLabsApiKey = data.elevenLabsApiKey;
-        const voiceId = data.voiceId || 'JBFqnCBsd6RMkjVDRZzb'; // Default to Rachel
+        const voiceId = data.voiceId || 'AeRdCCKzvd23BpJoofzx'; // Default to Nathaniel
 
         data = {
             elevenLabsApiKey: elevenLabsApiKey,
@@ -148,7 +143,7 @@ async function handleTextToSpeech() {
 async function handleTextToSpeechmain(settings) {
     const summaryText = document.getElementById('summaryText').textContent;
     const elevenLabsApiKey = settings.elevenLabsApiKey;
-    const voiceId = settings.voiceId || 'JBFqnCBsd6RMkjVDRZzb'; // Default to Rachel
+    const voiceId = settings.voiceId || 'AeRdCCKzvd23BpJoofzx'; // Default to Nathaniel
     
     // Validation
     if (!elevenLabsApiKey) {
@@ -169,12 +164,7 @@ async function handleTextToSpeechmain(settings) {
         ttsBtn.classList.add('loading');
         ttsBtn.disabled = true;
         ttsBtn.textContent = 'Generating...';
-        
-        // Clean up previous audio
-        // if (currentAudioUrl) {
-        //     URL.revokeObjectURL(currentAudioUrl);
-        //     currentAudioUrl = null;
-        // }
+    
         
         // Call ElevenLabs API
         const audioBlob = await generateSpeech(summaryText, elevenLabsApiKey, voiceId);
@@ -260,7 +250,7 @@ function handleDownload() {
     
     // Generate filename with timestamp
     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-    link.download = `flash-guardian-summary-${summaryType}-${timestamp}.txt`;
+    link.download = `halo-summary-${summaryType}-${timestamp}.txt`;
     
     // Trigger download
     document.body.appendChild(link);
@@ -445,7 +435,7 @@ function openSettingsModal() {
       document.getElementById('elevenLabsApiKeyInput').value = data.elevenLabsApiKey;
     }
     if (data.voiceId) {
-      document.getElementById('voiceSelect').value = data.voiceId || 'JBFqnCBsd6RMkjVDRZzb';
+      document.getElementById('voiceSelect').value = data.voiceId || 'AeRdCCKzvd23BpJoofzx';
     }
   });
   handleProviderChange();
@@ -496,7 +486,7 @@ function handleSaveSettings() {
         document.getElementById('summaryError').style.background = '#d4edda';
         document.getElementById('summaryError').style.borderColor = '#28a745';
         document.getElementById('summaryError').style.color = '#155724';
-        errormsg = aiProvider === 'gemini' ? `✓ Gemini API key saved! You can now generate summaries.` : `✓ ElevenLabs API key saved! You can now use Text-to-Speech.`;
+        errormsg = provider === 'gemini' ? `✓ Gemini API key saved! You can now generate summaries.` : `✓ ElevenLabs API key saved! You can now use Text-to-Speech.`;
         showInfo(errormsg);
         setTimeout(() => {
             document.getElementById('summaryError').style.display = 'none';

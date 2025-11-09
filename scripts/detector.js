@@ -1,11 +1,18 @@
 /**
- * Flash Guardian - Photosensitive Content Detector
+ * Halo - Photosensitive Content Detector
  * Based on WCAG 2.1 Guidelines for Flash and Red Flash Thresholds
  *
  * Detection criteria:
  * - General Flash: 3+ flashes per second with luminance change > 10%
  * - Red Flash: 3+ flashes per second with saturated red transitions
  */
+
+// Check if extension context is valid before running
+// Only throw if chrome is completely undefined, otherwise continue
+if (typeof chrome === 'undefined') {
+  console.log('[Halo] Chrome API not available');
+  throw new Error('Chrome API not available');
+}
 
 class FlashDetector {
   constructor(video, videoId, warnedVideosSet, getProtectionEnabled) {
@@ -185,16 +192,16 @@ class FlashDetector {
 
           // Trigger warning if threshold exceeded
           if (this.flashTimestamps.length >= this.FLASH_FREQUENCY) {
-            console.log('[Flash Guardian] THRESHOLD EXCEEDED! Flashes in last second:', this.flashTimestamps.length);
+            console.log('[Halo] THRESHOLD EXCEEDED! Flashes in last second:', this.flashTimestamps.length);
             this.triggerWarning('general', this.flashTimestamps.length);
           } else if (this.redFlashTimestamps.length >= this.FLASH_FREQUENCY) {
-            console.log('[Flash Guardian] RED FLASH THRESHOLD EXCEEDED! Red flashes in last second:', this.redFlashTimestamps.length);
+            console.log('[Halo] RED FLASH THRESHOLD EXCEEDED! Red flashes in last second:', this.redFlashTimestamps.length);
             this.triggerWarning('red', this.redFlashTimestamps.length);
           }
 
           // Log flash activity for debugging
           if (this.flashTimestamps.length > 0) {
-            console.log('[Flash Guardian] Flash detected! Total in last second:', this.flashTimestamps.length, 'Total overall:', this.totalFlashes);
+            console.log('[Halo] Flash detected! Total in last second:', this.flashTimestamps.length, 'Total overall:', this.totalFlashes);
           }
         }
 
@@ -210,7 +217,7 @@ class FlashDetector {
 
     } catch (error) {
       // Other unexpected errors
-      console.error('[Flash Guardian] Unexpected error during frame analysis:', error);
+      console.error('[Halo] Unexpected error during frame analysis:', error);
     }
 
     // Continue analyzing
@@ -231,42 +238,42 @@ class FlashDetector {
     this.video.pause();
 
     // Report warning to popup - wrap in try-catch for extension context errors
-    console.log('[Flash Guardian] Sending warningIssued message to background');
+    console.log('[Halo] Sending warningIssued message to background');
     try {
       chrome.runtime.sendMessage({
         action: 'updateStats',
         stat: 'warningIssued'
       }).then(response => {
-        console.log('[Flash Guardian] warningIssued message sent, response:', response);
+        console.log('[Halo] warningIssued message sent, response:', response);
       }).catch(error => {
         if (error.message && error.message.includes('Extension context invalidated')) {
-          console.log('[Flash Guardian] Extension was reloaded, cannot send warningIssued message');
+          console.log('[Halo] Extension was reloaded, cannot send warningIssued message');
         } else {
-          console.error('[Flash Guardian] Error sending warningIssued message:', error);
+          console.error('[Halo] Error sending warningIssued message:', error);
         }
       });
     } catch (error) {
-      console.log('[Flash Guardian] Cannot send warningIssued message, extension context may be invalid');
+      console.log('[Halo] Cannot send warningIssued message, extension context may be invalid');
     }
 
     // Report flashes detected - wrap in try-catch for extension context errors
-    console.log('[Flash Guardian] Sending flashDetected message to background, count:', this.totalFlashes);
+    console.log('[Halo] Sending flashDetected message to background, count:', this.totalFlashes);
     try {
       chrome.runtime.sendMessage({
         action: 'updateStats',
         stat: 'flashDetected',
         count: this.totalFlashes
       }).then(response => {
-        console.log('[Flash Guardian] flashDetected message sent, response:', response);
+        console.log('[Halo] flashDetected message sent, response:', response);
       }).catch(error => {
         if (error.message && error.message.includes('Extension context invalidated')) {
-          console.log('[Flash Guardian] Extension was reloaded, cannot send flashDetected message');
+          console.log('[Halo] Extension was reloaded, cannot send flashDetected message');
         } else {
-          console.error('[Flash Guardian] Error sending flashDetected message:', error);
+          console.error('[Halo] Error sending flashDetected message:', error);
         }
       });
     } catch (error) {
-      console.log('[Flash Guardian] Cannot send flashDetected message, extension context may be invalid');
+      console.log('[Halo] Cannot send flashDetected message, extension context may be invalid');
     }
 
     // Dispatch custom event for warning UI
@@ -311,7 +318,7 @@ class FlashDetector {
     this.flashTimestamps = [];
     this.redFlashTimestamps = [];
     this.analyzedFrameCount = 0;
-    console.log('[Flash Guardian] Detection state reset');
+    console.log('[Halo] Detection state reset');
   }
 
   /**
@@ -326,7 +333,7 @@ class FlashDetector {
     this.maxFlashesPerSecond = 0;
     this.resetDetectionState();
 
-    console.log('[Flash Guardian] Started monitoring video');
+    console.log('[Halo] Started monitoring video');
     this.analyzeFrame();
   }
 
@@ -335,7 +342,7 @@ class FlashDetector {
    */
   stop() {
     this.isAnalyzing = false;
-    console.log('[Flash Guardian] Stopped monitoring video');
+    console.log('[Halo] Stopped monitoring video');
   }
 
   /**
@@ -349,7 +356,7 @@ class FlashDetector {
 
 // Main execution
 (function() {
-  console.log('[Flash Guardian] Content script loaded');
+  console.log('[Halo] Content script loaded');
 
   const detectors = new Map();
   const visitedVideos = new Set(); // Track unique videos to prevent duplicate counting
@@ -362,7 +369,7 @@ class FlashDetector {
     new Promise(resolve => {
       chrome.storage.sync.get(['enabled'], (data) => {
         protectionEnabled = data.enabled !== false;
-        console.log('[Flash Guardian] Protection enabled:', protectionEnabled);
+        console.log('[Halo] Protection enabled:', protectionEnabled);
         resolve();
       });
     }),
@@ -370,14 +377,14 @@ class FlashDetector {
       chrome.storage.local.get(['visitedVideos'], (data) => {
         if (data.visitedVideos && Array.isArray(data.visitedVideos)) {
           data.visitedVideos.forEach(videoId => visitedVideos.add(videoId));
-          console.log('[Flash Guardian] Loaded', visitedVideos.size, 'previously visited videos');
+          console.log('[Halo] Loaded', visitedVideos.size, 'previously visited videos');
         }
         resolve();
       });
     })
   ]).then(() => {
     storageLoaded = true;
-    console.log('[Flash Guardian] Storage loaded, ready to initialize');
+    console.log('[Halo] Storage loaded, ready to initialize');
     // Now find and monitor videos
     findAndMonitorVideos();
   });
@@ -406,13 +413,13 @@ class FlashDetector {
   function initializeDetector(video) {
     // Don't initialize if protection is disabled
     if (!protectionEnabled) {
-      console.log('[Flash Guardian] Protection disabled, skipping video initialization');
+      console.log('[Halo] Protection disabled, skipping video initialization');
       return;
     }
 
     // CRITICAL: Don't initialize until storage is loaded
     if (!storageLoaded) {
-      console.log('[Flash Guardian] Storage not loaded yet, deferring initialization');
+      console.log('[Halo] Storage not loaded yet, deferring initialization');
       return;
     }
 
@@ -424,7 +431,7 @@ class FlashDetector {
 
     // Don't process videos on non-watch pages (homepage, search, etc.)
     if (!videoId) {
-      console.log('[Flash Guardian] Not on a watch page, skipping video initialization');
+      console.log('[Halo] Not on a watch page, skipping video initialization');
       return;
     }
 
@@ -438,7 +445,7 @@ class FlashDetector {
     const previousVideoId = video.dataset.flashGuardianVideoId;
     const isNewVideo = (previousSrc !== currentSrc) || (previousVideoId !== videoId);
 
-    console.log('[Flash Guardian] initializeDetector called:', {
+    console.log('[Halo] initializeDetector called:', {
       videoId,
       previousVideoId,
       isNewVideo,
@@ -450,12 +457,12 @@ class FlashDetector {
     if (detectors.has(video)) {
       // If it's the same video, don't reinitialize
       if (!isNewVideo) {
-        console.log('[Flash Guardian] Same video, skipping initialization');
+        console.log('[Halo] Same video, skipping initialization');
         return;
       }
 
       // New video in same element - stop old detector and create new one
-      console.log('[Flash Guardian] New video detected in existing element');
+      console.log('[Halo] New video detected in existing element');
       const oldDetector = detectors.get(video);
       oldDetector.stop();
       detectors.delete(video);
@@ -464,7 +471,7 @@ class FlashDetector {
     // Additional guard: If this exact videoId has already been processed, skip
     // This handles the case where initializeDetector is called twice in rapid succession
     if (visitedVideos.has(videoId) && video.dataset.flashGuardianVideoId === videoId) {
-      console.log('[Flash Guardian] Video already processed and counted, skipping. ID:', videoId);
+      console.log('[Halo] Video already processed and counted, skipping. ID:', videoId);
       return;
     }
 
@@ -482,7 +489,7 @@ class FlashDetector {
     const detector = new FlashDetector(video, videoId, warnedVideos, () => protectionEnabled);
     detectors.set(video, detector);
 
-    console.log('[Flash Guardian] Created new detector for video ID:', videoId, 'visitedVideos size:', visitedVideos.size);
+    console.log('[Halo] Created new detector for video ID:', videoId, 'visitedVideos size:', visitedVideos.size);
 
     // Report video monitored to popup (only for unique videos never seen before)
     const alreadyVisited = visitedVideos.has(videoId);
@@ -490,11 +497,11 @@ class FlashDetector {
     if (!alreadyVisited) {
       // Add to set IMMEDIATELY to prevent double-counting if called twice rapidly
       visitedVideos.add(videoId);
-      console.log('[Flash Guardian] New unique video detected, ID:', videoId, 'Total unique videos:', visitedVideos.size);
+      console.log('[Halo] New unique video detected, ID:', videoId, 'Total unique videos:', visitedVideos.size);
 
       // Save visited videos to storage FIRST for persistence
       chrome.storage.local.set({ visitedVideos: Array.from(visitedVideos) }, () => {
-        console.log('[Flash Guardian] Saved visited videos to storage, size:', visitedVideos.size);
+        console.log('[Halo] Saved visited videos to storage, size:', visitedVideos.size);
 
         // THEN send the message to update stats
         try {
@@ -502,27 +509,27 @@ class FlashDetector {
             action: 'updateStats',
             stat: 'videoMonitored'
           }).then(response => {
-            console.log('[Flash Guardian] videoMonitored message sent successfully, response:', response);
+            console.log('[Halo] videoMonitored message sent successfully, response:', response);
           }).catch(error => {
             if (error && error.message && error.message.includes('Extension context invalidated')) {
-              console.warn('[Flash Guardian] Extension was reloaded, cannot send message');
+              console.warn('[Halo] Extension was reloaded, cannot send message');
             } else {
-              console.error('[Flash Guardian] Error sending videoMonitored message:', error);
+              console.error('[Halo] Error sending videoMonitored message:', error);
             }
           });
         } catch (error) {
-          console.warn('[Flash Guardian] Cannot send message, extension context may be invalid:', error);
+          console.warn('[Halo] Cannot send message, extension context may be invalid:', error);
         }
       });
     } else {
-      console.log('[Flash Guardian] Video already visited, not counting again. ID:', videoId, 'Total videos in set:', visitedVideos.size);
+      console.log('[Halo] Video already visited, not counting again. ID:', videoId, 'Total videos in set:', visitedVideos.size);
     }
 
     setupVideoEventListeners(video, detector);
 
     // If video is already playing, start detection immediately (only if protection enabled)
     if (!video.paused && protectionEnabled) {
-      console.log('[Flash Guardian] Video already playing, starting detection');
+      console.log('[Halo] Video already playing, starting detection');
       detector.start();
     }
   }
@@ -541,13 +548,13 @@ class FlashDetector {
     video.addEventListener('play', () => {
       // Only start detection if protection is enabled
       if (!protectionEnabled) {
-        console.log('[Flash Guardian] Protection disabled, not starting detection');
+        console.log('[Halo] Protection disabled, not starting detection');
         return;
       }
 
       // If playing from the beginning (first 3 seconds), reset warning
       if (video.currentTime < 3) {
-        console.log('[Flash Guardian] Video playing from beginning, resetting warning flag');
+        console.log('[Halo] Video playing from beginning, resetting warning flag');
         detector.warningShown = false;
         detector.totalFlashes = 0;
         detector.maxFlashesPerSecond = 0;
@@ -566,7 +573,7 @@ class FlashDetector {
 
       // If seeking backwards or to the beginning, allow warning to show again
       if (video.currentTime < 10) {
-        console.log('[Flash Guardian] Seeking to early part of video, resetting warning flag');
+        console.log('[Halo] Seeking to early part of video, resetting warning flag');
         detector.warningShown = false;
         detector.totalFlashes = 0;
         detector.maxFlashesPerSecond = 0;
@@ -578,7 +585,7 @@ class FlashDetector {
       detector.stop();
     });
 
-    console.log('[Flash Guardian] Setup event listeners for video:', video);
+    console.log('[Halo] Setup event listeners for video:', video);
   }
 
   /**
@@ -587,12 +594,12 @@ class FlashDetector {
   function findAndMonitorVideos() {
     // Don't initialize until storage is loaded
     if (!storageLoaded) {
-      console.log('[Flash Guardian] Waiting for storage to load before monitoring videos');
+      console.log('[Halo] Waiting for storage to load before monitoring videos');
       return;
     }
 
     const videos = document.querySelectorAll('video');
-    console.log(`[Flash Guardian] Found ${videos.length} video(s) on page`);
+    console.log(`[Halo] Found ${videos.length} video(s) on page`);
     videos.forEach(video => initializeDetector(video));
   }
 
@@ -618,7 +625,7 @@ class FlashDetector {
   document.addEventListener('flashDetected', (event) => {
     // Only show warning if protection is enabled
     if (!protectionEnabled) {
-      console.log('[Flash Guardian] Warning suppressed - protection is disabled');
+      console.log('[Halo] Warning suppressed - protection is disabled');
       return;
     }
     showWarningOverlay(event.detail);
@@ -627,7 +634,7 @@ class FlashDetector {
   // Listen for messages from popup (e.g., enable/disable, reset stats)
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'enable') {
-      console.log('[Flash Guardian] Protection enabled');
+      console.log('[Halo] Protection enabled');
       protectionEnabled = true;
       // Start all detectors if videos are playing
       detectors.forEach(detector => {
@@ -636,25 +643,25 @@ class FlashDetector {
         }
       });
     } else if (request.action === 'disable') {
-      console.log('[Flash Guardian] Protection disabled');
+      console.log('[Halo] Protection disabled');
       protectionEnabled = false;
       // Stop all detectors
       detectors.forEach(detector => detector.stop());
 
       // Hide any visible warning overlay
-      const overlay = document.getElementById('flash-guardian-overlay');
+      const overlay = document.getElementById('halo-overlay');
       if (overlay) {
         overlay.style.display = 'none';
       }
     } else if (request.action === 'resetStats') {
-      console.log('[Flash Guardian] Clearing visited videos cache and warned videos');
+      console.log('[Halo] Clearing visited videos cache and warned videos');
       // Clear the visited videos set so videos can be counted again
       visitedVideos.clear();
       // Clear the warned videos set so warnings can be issued again
       warnedVideos.clear();
       // Also clear from storage
       chrome.storage.local.set({ visitedVideos: [] }, () => {
-        console.log('[Flash Guardian] Cleared visited videos from storage');
+        console.log('[Halo] Cleared visited videos from storage');
       });
     }
     sendResponse({ success: true });
@@ -665,36 +672,58 @@ class FlashDetector {
    * Create and show warning overlay
    */
   function showWarningOverlay(details) {
+    // Check if extension context is still valid
+    try {
+      if (!chrome.runtime?.id) {
+        console.log('[Halo] Extension context invalidated, stopping overlay creation');
+        return;
+      }
+    } catch (e) {
+      console.log('[Halo] Extension context invalidated');
+      return;
+    }
+
     // Check if overlay already exists
-    let overlay = document.getElementById('flash-guardian-overlay');
+    let overlay = document.getElementById('halo-overlay');
 
     if (!overlay) {
       overlay = document.createElement('div');
-      overlay.id = 'flash-guardian-overlay';
+      overlay.id = 'halo-overlay';
+
+      let warningIconUrl;
+      try {
+        warningIconUrl = chrome.runtime.getURL('icons/warning.png');
+      } catch (e) {
+        console.log('[Halo] Cannot get icon URL, extension context invalidated');
+        return;
+      }
+
       overlay.innerHTML = `
-        <div class="flash-guardian-content">
-          <div class="flash-guardian-icon">⚠️</div>
+        <div class="halo-content">
+          <div class="halo-icon">
+            <img src="${warningIconUrl}" alt="Warning">
+          </div>
           <h2>Photosensitive Warning</h2>
-          <p class="flash-guardian-message">
+          <p class="halo-message">
             Rapid flashing content detected (<strong>${details.flashCount} flashes/second</strong>)
           </p>
-          <p class="flash-guardian-info">
+          <p class="halo-info">
             This video may contain content that could trigger seizures in people with photosensitive epilepsy.
           </p>
-          <div class="flash-guardian-stats">
+          <div class="halo-stats">
             <div>Max flashes/sec: <strong>${details.maxFlashesPerSecond}</strong></div>
             <div>Total flashes: <strong>${details.totalFlashes}</strong></div>
             <div>Timestamp: <strong>${Math.floor(details.timestamp)}s</strong></div>
           </div>
-          <div class="flash-guardian-buttons">
-            <button id="flash-guardian-continue" class="fg-btn fg-btn-danger">
+          <div class="halo-buttons">
+            <button id="halo-continue" class="fg-btn fg-btn-danger">
               Continue Anyway (Not Recommended)
             </button>
-            <button id="flash-guardian-close" class="fg-btn fg-btn-primary">
+            <button id="halo-close" class="fg-btn fg-btn-primary">
               Pause Video
             </button>
           </div>
-          <p class="flash-guardian-wcag">
+          <p class="halo-wcag">
             Detection based on WCAG 2.1 Guidelines (≥3 flashes/second threshold)
           </p>
         </div>
@@ -703,7 +732,7 @@ class FlashDetector {
       document.body.appendChild(overlay);
 
       // Add event listeners
-      document.getElementById('flash-guardian-continue').addEventListener('click', () => {
+      document.getElementById('halo-continue').addEventListener('click', () => {
         const videos = document.querySelectorAll('video');
         videos.forEach(video => {
           const detector = detectors.get(video);
@@ -715,7 +744,7 @@ class FlashDetector {
         overlay.style.display = 'none';
       });
 
-      document.getElementById('flash-guardian-close').addEventListener('click', () => {
+      document.getElementById('halo-close').addEventListener('click', () => {
         const videos = document.querySelectorAll('video');
         videos.forEach(video => {
           video.pause();
@@ -728,9 +757,9 @@ class FlashDetector {
       });
     } else {
       // Update existing overlay with new data
-      overlay.querySelector('.flash-guardian-message').innerHTML =
+      overlay.querySelector('.halo-message').innerHTML =
         `Rapid flashing content detected (<strong>${details.flashCount} flashes/second</strong>)`;
-      overlay.querySelector('.flash-guardian-stats').innerHTML = `
+      overlay.querySelector('.halo-stats').innerHTML = `
         <div>Max flashes/sec: <strong>${details.maxFlashesPerSecond}</strong></div>
         <div>Total flashes: <strong>${details.totalFlashes}</strong></div>
         <div>Timestamp: <strong>${Math.floor(details.timestamp)}s</strong></div>

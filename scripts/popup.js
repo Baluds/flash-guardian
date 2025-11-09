@@ -159,13 +159,13 @@ document.getElementById('resetStats').addEventListener('click', () => {
       const button = document.getElementById('resetStats');
       const originalText = button.textContent;
       button.textContent = 'Statistics Reset!';
-      button.style.background = '#faee21';
-      button.style.color = '#000000';
+      button.style.background = '#00d4ff';
+      button.style.color = '#1a1a1a';
 
       setTimeout(() => {
         button.textContent = originalText;
-        button.style.background = '#000000';
-        button.style.color = '#fff';
+        button.style.background = 'linear-gradient(135deg, #b8f50a 0%, #00d4ff 100%)';
+        button.style.color = '#1a1a1a';
       }, 1500);
 
       console.log('[Halo] Statistics reset successfully');

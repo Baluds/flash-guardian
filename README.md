@@ -1,8 +1,19 @@
 # Halo
 
-A dual-purpose Chrome browser extension for accessibility:
+A dual-purpose Chrome browser extension for accessibility built for HackUmass 2025.
+
+**Halo** combines two powerful accessibility features:
 1. **Flash Protection**: Protects people with photosensitive epilepsy by detecting flashing content in videos
 2. **Text Summarizer**: AI-powered article summarization for people with ADHD/ADD
+
+## Project Overview
+
+Halo is a Manifest V3 Chrome extension that serves two different user groups with distinct accessibility needs:
+
+- **For photosensitive users**: Real-time flash detection that monitors video content and automatically pauses when dangerous flashing patterns are detected (≥3 flashes per second), following WCAG 2.1 standards
+- **For users with ADHD/ADD**: AI-powered text summarization using Google Gemini or Groq APIs to condense long articles into digestible summaries
+
+All video processing happens locally in your browser for complete privacy. The extension features a clean popup interface that allows users to toggle between the two modes and customize their experience.
 
 ## What It Does
 
@@ -28,6 +39,16 @@ Condenses long articles and blog posts into easy-to-read summaries using Google'
 - **Smart Extraction**: Automatically finds and extracts main article content
 - **Copy to Clipboard**: Easy sharing of summaries
 - **Works Everywhere**: Summarize articles on any website
+
+## Technical Architecture
+
+- **Manifest Version**: 3
+- **Content Scripts**:
+  - `detector.js` - Flash detection logic for video platforms (YouTube, TikTok, Twitter/X, Instagram, Twitch)
+  - `summarizer.js` - Text summarization functionality (works on all websites)
+- **Background Worker**: `background.js` - Manages extension lifecycle and communication
+- **Popup Interface**: `popup.html` + `popup.js` - User settings, statistics, and controls
+- **AI Integration**: Supports Google Gemini and Groq APIs for intelligent text summarization
 
 ## How It Works
 

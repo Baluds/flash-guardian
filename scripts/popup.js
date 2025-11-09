@@ -19,7 +19,7 @@ function switchToFlash() {
   currentView = 'flash';
   document.getElementById('flashView').classList.add('active');
   document.getElementById('summarizerView').classList.remove('active');
-  document.getElementById('viewToggle').textContent = '🛡️';
+  document.getElementById('viewToggle').innerHTML = '<img src="icons/notepad.png" alt="Notepad" class="icon-img">';
   document.getElementById('viewToggle').title = 'Switch to Summarizer';
   document.getElementById('headerSubtitle').textContent = 'Photosensitive Content Protection';
   // Hide settings button in flash view
@@ -30,7 +30,7 @@ function switchToSummarizer() {
   currentView = 'summarizer';
   document.getElementById('flashView').classList.remove('active');
   document.getElementById('summarizerView').classList.add('active');
-  document.getElementById('viewToggle').textContent = '📝';
+  document.getElementById('viewToggle').innerHTML = '<img src="icons/shield.png" alt="Shield" class="icon-img">';
   document.getElementById('viewToggle').title = 'Switch to Flash Protection';
   document.getElementById('headerSubtitle').textContent = 'AI-Powered Text Summarizer';
   // Show settings button in summarizer view

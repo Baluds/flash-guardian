@@ -35,7 +35,7 @@
     }
 
     .title-section {
-      text-align: center;
+      text-align: left;
       flex: 1;
     }
 
@@ -55,7 +55,8 @@
     .header-icons {
       display: flex;
       gap: 8px;
-      margin-top: 5px;
+      align-items: flex-start;
+      margin-top: 20px;
     }
 
     .icon-btn {
@@ -76,12 +77,17 @@
 
     .icon-btn:hover {
       background: rgba(255, 255, 255, 1);
-      transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
 
     .icon-btn:active {
-      transform: translateY(0);
+      background: rgba(240, 240, 240, 1);
+    }
+
+    .icon-img {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
     }
 
     .view-container {
@@ -395,12 +401,16 @@
   <div class="header">
     <div class="header-content">
       <div class="title-section">
-        <h1>Halo</h1>
+        <img src="icons/logo.png" alt="Halo" style="height: 80px; margin-bottom: -8px; margin-left: 0; display: block;">
         <p id="headerSubtitle">Photosensitive Content Protection</p>
       </div>
       <div class="header-icons">
-        <button id="settingsBtn" class="icon-btn" title="Settings" style="display: none;">⚙️</button>
-        <button id="viewToggle" class="icon-btn" title="Toggle View">🛡️</button>
+        <button id="settingsBtn" class="icon-btn" title="Settings" style="display: none;">
+          <img src="icons/setting.png" alt="Settings" class="icon-img">
+        </button>
+        <button id="viewToggle" class="icon-btn" title="Toggle View">
+          <img src="icons/notepad.png" alt="Notepad" class="icon-img">
+        </button>
       </div>
     </div>
   </div>
@@ -463,7 +473,7 @@
       <textarea id="textInput" placeholder="Paste article text here..." style="width: 100%; min-height: 150px; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; resize: vertical; box-sizing: border-box; margin-bottom: 15px;"></textarea>
 
       <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
-        <select id="summaryType" style="flex: 1; padding: 14px 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; background: #fff; cursor: pointer; height: 48px;">
+        <select id="summaryType" style="flex: 1; padding: 14px 12px; padding-right: 36px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; background: #fff; cursor: pointer; height: 48px; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%278%27 viewBox=%270 0 12 8%27%3e%3cpath fill=%27%23666%27 d=%27M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z%27/%3e%3c/svg%3e'); background-repeat: no-repeat; background-position: right 12px center;">
           <option value="quick">Quick Summary</option>
           <option value="bullets">Bullet Points</option>
         </select>
